@@ -17,7 +17,7 @@ class DataFrameProcessor:
 
     @staticmethod
     def one_hot_encode_columns(data: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
-        data = pd.get_dummies(data, columns=columns, drop_first=True)
+        data = pd.get_dummies(data, columns=columns, drop_first=True, dtype=int)
         return data
 
     @staticmethod
