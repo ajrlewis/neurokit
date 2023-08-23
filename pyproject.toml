@@ -11,8 +11,12 @@ dependencies = [
     "numpy==1.24.3",
     "pandas==2.0.3",
     "scikit-learn==1.3.0",
-    "tensorflow==2.13.0",
+    "tensorflow==2.13.0"
 ]
 
 [tool.setuptools]
-packages = ["neurokit"]
+packages = [
+    "neurokit",
+    "neurokit.models",
+    "neurokit.utils"
+]
