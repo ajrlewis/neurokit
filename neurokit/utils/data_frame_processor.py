@@ -21,25 +21,39 @@ class DataFrameProcessor:
         return data
 
     @staticmethod
-    def scale_columns(data: pd.DataFrame, scaling_params=None) -> pd.DataFrame:
-        scaler = MinMaxScaler()
-        scaled_data = data.copy()
-
+    def scale_columns(
+        data: pd.DataFrame,
+        columns: List[str],
+        scaling_params: Optional[Dict[str, float]] = None,
+    ) -> Tuple[pd.DataFrame, Dict[str, float]]:
+        # Check if scaling_params is provided or not
         if scaling_params is None:
             scaling_params = {}
 
-        for column in scaled_data.columns:
-            if column not in scaling_params:
-                scaling_params[column] = {
-                    "min": scaled_data[column].min(),
-                    "max": scaled_data[column].max(),
-                }
+            # Calculate min and max values for each column
+            for col in columns:
+                min_value = data[col].min()
+                max_value = data[col].max()
 
-            scaled_data[column] = scaler.fit_transform(
-                scaled_data[column].values.reshape(-1, 1)
-            )
+                # Store the scaling parameters in the scaling_params dictionary
+                scaling_params[col] = {"min": min_value, "max": max_value}
+        else:
+            # Check if scaling_params contains the required columns
+            for col in columns:
+                if col not in scaling_params:
+                    raise ValueError(
+                        f"scaling_params does not contain scaling parameters for column '{col}'"
+                    )
 
-        return scaled_data, scaling_params
+        # Scale the columns
+        for col in columns:
+            min_value = scaling_params[col]["min"]
+            max_value = scaling_params[col]["max"]
+
+            # Apply the scaling transformation
+            data[col] = (data[col] - min_value) / (max_value - min_value)
+
+        return data, scaling_params
 
     @staticmethod
     def split_data_by_date(data: pd.DataFrame, training_dataset_size: float = 0.8):
