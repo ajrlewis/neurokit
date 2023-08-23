@@ -1,0 +1,18 @@
+[project]
+name = "neurokit"
+version = "0.1.0"
+description = "A Python package for creating and using neural networks."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "ajrlewis", email = "hello@ajrlewis.com" }
+]
+dependencies = [
+    "numpy==1.24.3",
+    "pandas==2.0.3",
+    "scikit-learn==1.3.0",
+    "tensorflow==2.13.0",
+]
+
+[tool.setuptools]
+packages = ["neurokit"]
