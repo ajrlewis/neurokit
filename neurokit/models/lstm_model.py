@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -12,34 +13,52 @@ def reshape(data: np.array) -> np.array:
 
 
 class LSTMModel:
-    def __init__(self, features: np.array, target: np.array):
-        self.features = features
-        self.target = target
-        self.model = None
+    def __init__(self, n_features: int, n_targets: int):
+        self.n_features = n_features
+        self.n_targets = n_targets
+        self._model = None
+        self._create()
 
-    def create_model(self):
-        self.model = Sequential()
-        self.model.add(
+    def __repr__(self) -> str:
+        return f"{self._model} with {self.n_features} features and {self.n_targets} targets"
+
+    @property
+    def architecture(self):
+        return self._model.to_json()
+
+    @property
+    def weights(self):
+        return self._model.get_weights()
+
+    def _create(self):
+        self._model = Sequential()
+        self._model.add(
             LSTM(
                 units=64,
-                input_shape=(self.features.shape[1], 1),
+                input_shape=(self.n_features, self.n_targets),
                 return_sequences=False,
             )
         )
-        self.model.add(Dense(units=32, activation="relu"))
-        self.model.add(Dense(units=1))
-        self.model.compile(optimizer="adam", loss="mean_absolute_error")
+        self._model.add(Dense(units=32, activation="relu"))
+        self._model.add(Dense(units=1))
+        self._model.compile(optimizer="adam", loss="mean_absolute_error")
 
-    def train_model(self, epochs: int = 50, batch_size: int = 128):
+    def train(
+        self,
+        features: np.array,
+        targets: np.array,
+        epochs: int = 50,
+        batch_size: int = 128,
+    ):
         X_train, X_val, y_train, y_val = train_test_split(
-            self.features, self.target, test_size=0.2, shuffle=True
+            features, targets, test_size=0.2, shuffle=True
         )
         X_train_reshaped = reshape(X_train)
         X_val_reshaped = reshape(X_val)
         early_stopping = EarlyStopping(
             monitor="val_loss", patience=10, restore_best_weights=True
         )
-        self.model.fit(
+        self._model.fit(
             X_train,
             y_train,
             epochs=epochs,
@@ -48,31 +67,19 @@ class LSTMModel:
             callbacks=[early_stopping],
         )
 
-    def forecast(self, data: np.array) -> np.array:
-        data_reshaped = reshape(data)
-        predictions = self.model.predict(data_reshaped)
+    def predict(self, features: np.array) -> np.array:
+        features_reshaped = reshape(features)
+        predictions = self._model.predict(features_reshaped)
         return predictions.flatten()
 
-    def save_model(self, filename: str = "model.keras"):
-        self.model.save(filename)
+    def save(self, filename: str = "model.keras"):
+        self._model.save(filename)
 
-    def load_model(self, filename: str = "model.keras"):
-        self.model = load_model(filename)
+    @classmethod
+    def load(cls, filename: str = "model.keras"):
+        model = load_model(filename)
+        input_shape = model.layers[0].input_shape
+        n_features = input_shape[1]
+        n_targets = input_shape[2]
+        return cls(n_features, n_targets)
 
-    def model_architecture(self):
-        return self.model.to_json()
-
-    def model_weights(self):
-        return self.model.get_weights()
-
-
-def main():
-    lstm_model = LSTMModel(features, target)
-    lstm_model.create_model()
-    lstm_model.train_model(epochs=10, batch_size=32)
-    lstm_model.save_model()
-    predictions = lstm_model.forecast(new_data)
-
-
-if __name__ == "__main__":
-    main()
