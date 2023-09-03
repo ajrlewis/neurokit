@@ -38,7 +38,7 @@ class DataFrameProcessor:
             for col in columns:
                 min_value = data[col].min()
                 max_value = data[col].max()
-                scaling_params[col] = {"min": min_value, "max": max_value}
+                scaling_params[col] = {"min": float(min_value), "max": float(max_value)}
         else:
             for col in columns:
                 if col not in scaling_params:
