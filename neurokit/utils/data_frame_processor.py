@@ -5,7 +5,9 @@ import numpy as np
 
 class DataFrameProcessor:
 
-    ScalingParams = Dict[str, Dict[str, float]]  # e.g. {"foo": {"min": 0.0, "max": 1.0}, ...}
+    ScalingParams = Dict[
+        str, Dict[str, float]
+    ]  # e.g. {"foo": {"min": 0.0, "max": 1.0}, ...}
 
     @staticmethod
     def add_temporal_columns(data: pd.DataFrame, column: str = "date") -> pd.DataFrame:
@@ -51,7 +53,11 @@ class DataFrameProcessor:
 
     @staticmethod
     def extract(data: pd.DataFrame, columns: list) -> pd.DataFrame:
-        return data.filter(regex="|".join([column for column in columns]))
+        return (
+            data.filter(regex="|".join([column for column in columns]))
+            .to_numpy(dtype=float)
+            .copy()
+        )
 
     @staticmethod
     def split_data_by_date(data: pd.DataFrame, training_dataset_size: float = 0.8):
