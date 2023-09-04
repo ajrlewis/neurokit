@@ -1,4 +1,5 @@
-from typing import Optional
+from __future__ import annotations
+from typing import List, Optional
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -13,21 +14,25 @@ def reshape(data: np.array) -> np.array:
 
 
 class LSTMModel:
-    def __init__(self, n_features: int, n_targets: int):
-        self.n_features = n_features
-        self.n_targets = n_targets
-        self._model = None
-        self._create()
+    def __init__(
+        self, feature_size: int, target_size: int, model: Optional[Sequential] = None
+    ):
+        self.batch_size = None  # Variable number of samples in a batch
+        self.feature_size = feature_size
+        self.target_size = target_size
+        self._model = model
+        if not self._model:
+            self._create()
 
     def __repr__(self) -> str:
-        return f"{self._model} with {self.n_features} features and {self.n_targets} targets"
+        return f"{self._model} with {self.feature_size} features and {self.target_size} targets"
 
     @property
-    def architecture(self):
+    def architecture(self) -> str:
         return self._model.to_json()
 
     @property
-    def weights(self):
+    def weights(self) -> List[np.array]:
         return self._model.get_weights()
 
     def _create(self):
@@ -35,7 +40,7 @@ class LSTMModel:
         self._model.add(
             LSTM(
                 units=64,
-                input_shape=(self.n_features, self.n_targets),
+                input_shape=(self.feature_size, self.target_size),
                 return_sequences=False,
             )
         )
@@ -76,10 +81,10 @@ class LSTMModel:
         self._model.save(filename)
 
     @classmethod
-    def load(cls, filename: str = "model.keras"):
+    def load(cls, filename: str = "model.keras") -> LSTMModel:
         model = load_model(filename)
-        input_shape = model.layers[0].input_shape
-        n_features = input_shape[1]
-        n_targets = input_shape[2]
-        return cls(n_features, n_targets)
-
+        batch_size, feature_size, target_size = model.layers[0].input_shape
+        lstm_model = cls(
+            feature_size=feature_size, target_size=target_size, model=model
+        )
+        return lstm_model
