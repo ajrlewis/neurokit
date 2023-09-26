@@ -1,5 +1,7 @@
 # NeuroKit
 
+![My Project Logo](images/logo.png)
+
 A Python package for creating and using neural networks.
 
 ## Installation
